@@ -1,9 +1,6 @@
 #!/usr/bin/env python
 
-import math
 import socket
-from random import choice
-from random import random
 
 class OtterBot:
     def __init__(self,name='OtterBot',network='127.0.0.1',port=6667):
@@ -83,10 +80,6 @@ class OtterBot:
         else:
             self.listening()
 
-    # I was keeping a log at one time.
-    #if not self.direct: self.gatherStatistics(message)
-
-
     def associated(self):
         """ If the bot is implicated or associated in a sentence somehow, print one of these messages."""
         st=["I've been implicated..."]
@@ -111,29 +104,6 @@ class OtterBot:
         ret.append('  help                - This message')
 
         return ret
-
-    def gatherStatistics(self,message):
-        message=message.strip()
-        message=message.replace("'","")
-        s="INSERT INTO sents VALUES ('%s');" % message
-        self.cur.executescript(s)
-        bg=['*','*']
-        vMessage=message.split()
-        vMessage.append('ST*P')
-        for v in vMessage:
-            v.upper()
-            v=v.strip("!@#$%^&*(){}[]'\",./<> 	?`~")
-            if not self.words.has_key(v): self.words[v]=1
-            else: self.words[v]=self.words[v]+1
-
-            bg.pop()
-            bg.insert(0,v)
-            s="_".join(bg)
-            if not self.bigrams.has_key(s): self.bigrams[s]=1
-            else: self.bigrams[s]=self.bigrams[s]+1
-
-            #self.cur.executescript("""
-            #    INSERT INTO unigram VALUES ('%s'
 
 
 if __name__ == "__main__":
