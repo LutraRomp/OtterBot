@@ -2,6 +2,7 @@
 
 import socket
 from Util.Conv import Conv
+from Models import BasicUtils
 
 class OtterBot:
     def __init__(self,name='OtterBot',network='127.0.0.1',port=6667):
@@ -21,7 +22,8 @@ class OtterBot:
         self.targetName=""
         self.message=""
 
-        self.Conv=Conv()
+        self.Conv=None
+        self.Models=[]
 
     def __call__(self):
         while True:
@@ -41,11 +43,15 @@ class OtterBot:
               print "destination: %s" % destination
 
               ret=self.processMessage(destination,nick,message)
-              if ret == 'BYE':
-                  self.Conv.dump()
-                  return
+              if ret == 'BYE': return
               print 50*"-"
               if ret: self.irc.send(ret)
+
+    def addConv(self,Conversation):
+        self.Conv=Conversation
+
+    def addModel(self,Model):
+        self.Models.append(Model)
 
     def processMessage(self,destination,nick,message=None):
         if not message: return None
@@ -60,11 +66,17 @@ class OtterBot:
 
         self.message=message.strip()
 
-        self.Conv.add(self.priv,nick,self.targetName,self.message)
-        if self.message=='BYE': return 'BYE'
+
+        self.Conv(self.priv,nick,self.targetName,self.message)
+        for model in self.Models:
+            action,msg=model(self.Conv)
+            print "MESAGE: %s" % msg
+            if msg=='BYE': return 'BYE'
         return ""
 
 
 if __name__ == "__main__":
     bot=OtterBot(name='OtterBot')
+    bot.addConv(Conv())
+    bot.addModel(BasicUtils.BasicUtils())
     bot()
