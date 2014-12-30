@@ -14,8 +14,6 @@ for playing around.
 Usage
 -----
 
-The bot currently doesn't do anything interesting.  It reuses some old code that determined
-whether it was being talked to, talked about or not involved in a conversation at all.
-
-It will always say something if there is chat room activity, but it's not doing anything
-useful yet.
+The bot currently doesn't do anything interesting.  There are currently
+commands that are built into the bot ('OP' and 'BYE', for example),
+but they aren't going to stay around forever.
