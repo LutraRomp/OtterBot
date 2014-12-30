@@ -2,50 +2,40 @@
 
 import socket
 from Util.Conv import Conv
+from Util.Irc import Irc
 from Models import BasicUtils
 
 class OtterBot:
     def __init__(self,name='OtterBot',network='127.0.0.1',port=6667):
         self.name=name
-        n=name
 
-        self.irc = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.irc.connect( ( network, port ) )
-        self.irc.recv( 4096 )
-        self.irc.send( 'NICK %s\r\n' % n )
-        self.irc.send( 'USER %s %s %s :Python IRC\r\n'  % (n,n,n))
-        self.irc.send( 'JOIN #test\r\n' )
-
-        self.words={}
-        self.bigrams={}
+        self.Irc = Irc(name, network, port)
+        self.Irc.connect()
+        self.Conv=None
+        self.Models=[]
 
         self.targetName=""
         self.message=""
 
-        self.Conv=None
-        self.Models=[]
 
     def __call__(self):
         while True:
-           data = self.irc.recv ( 4096 )
+           data = self.Irc()
            print data.strip()
+           print 50*"-"
            if data.find ( 'PING' ) != -1:
-              self.irc.send ( 'PONG ' + data.split() [ 1 ] + '\r\n' )
+              self.Irc.conn.send ( 'PONG ' + data.split() [ 1 ] + '\r\n' )
            elif data.find ( 'PRIVMSG' ) != -1:
               message = ':'.join ( data.split ( ':' ) [ 2: ] )
               nick = data.split ( '!' ) [ 0 ].replace ( ':', '' )
               destination = ''.join ( data.split ( ':' ) [ :2 ] ).split ( ' ' ) [ -2 ]
 
-              # TODO: Printing information out to the screen so I can see what's happening.
-              # This is temporary and should be removed in the future.
-              print "message: %s" % message.strip()
-              print "nick: %s" % nick
-              print "destination: %s" % destination
-
               ret=self.processMessage(destination,nick,message)
               if ret == 'BYE': return
-              print 50*"-"
-              if ret: self.irc.send(ret)
+
+    def join(self,channel=None):
+        if not channel: return
+        self.Irc.join(channel)
 
     def addConv(self,Conversation):
         self.Conv=Conversation
@@ -69,14 +59,14 @@ class OtterBot:
 
         self.Conv(self.priv,nick,self.targetName,self.message)
         for model in self.Models:
-            action,msg=model(self.Conv)
-            print "MESAGE: %s" % msg
-            if msg=='BYE': return 'BYE'
+            action=model(self.Conv,self.Irc)
+            if action == 'BYE': return 'BYE'
         return ""
 
 
 if __name__ == "__main__":
-    bot=OtterBot(name='OtterBot')
+    bot=OtterBot(name='OtterBot', network='127.0.0.1', port=6667)
+    bot.join('#test')
     bot.addConv(Conv())
     bot.addModel(BasicUtils.BasicUtils())
     bot()
